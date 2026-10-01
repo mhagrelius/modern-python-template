@@ -1,9 +1,10 @@
 """Run the same read-only quality gates used by CI."""
 
 import argparse
+import sys
 from collections.abc import Sequence
 
-from _common import entrypoint, run
+from _common import entrypoint, project_root, run
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -25,6 +26,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "--cov-report=xml",
         ]
     )
+    run([sys.executable, str(project_root() / "scripts/test_wheel.py")])
     return 0
 
 
