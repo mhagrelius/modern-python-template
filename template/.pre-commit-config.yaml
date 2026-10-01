@@ -1,0 +1,18 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff lint
+        entry: uv run --locked ruff check --fix
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: Ruff format
+        entry: uv run --locked ruff format
+        language: system
+        types_or: [python, pyi]
+      - id: merge-conflicts
+        name: Unresolved merge conflicts
+        entry: uv run --locked python scripts/check_conflicts.py
+        language: system
+        exclude: ^uv\.lock$

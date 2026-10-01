@@ -2,16 +2,19 @@ import os
 import subprocess
 import sys
 
-from conftest import git
+from tests.conftest import git
 
 
 def command(project, script, *args):
+    environment = os.environ.copy()
+    environment.pop("VIRTUAL_ENV", None)
+    environment["PREK_HOME"] = str(project.parent / "prek-cache")
     return subprocess.run(
         [sys.executable, str(project / "scripts" / script), *args],
         cwd=project,
         text=True,
         capture_output=True,
-        env=os.environ.copy(),
+        env=environment,
     )
 
 
@@ -45,3 +48,20 @@ def test_bootstrap_creates_lock_and_hooks_without_commits(render):
     stale = command(project, "check.py")
     assert stale.returncode != 0
     assert "lock" in stale.stderr.lower()
+
+
+def test_generated_checks_reject_lint_and_type_errors(render):
+    project = render()
+    git(project, "init", "-b", "main")
+    setup = command(project, "bootstrap.py")
+    assert setup.returncode == 0, setup.stderr
+    source = project / "src/example_package/__init__.py"
+    original = source.read_text()
+    source.write_text(original + "\nimport os\n")
+    lint = command(project, "check.py")
+    assert lint.returncode != 0
+    assert "F401" in lint.stdout
+    source.write_text(original + '\n\nwrong: int = "not a number"\n')
+    typed = command(project, "check.py")
+    assert typed.returncode != 0
+    assert "reportAssignmentType" in typed.stdout

@@ -47,6 +47,9 @@ required-version = ">=0.12.21,<0.13"
 default-groups = ["dev", "build"]
 build-constraint-dependencies = ["uv_build==0.12.21"]
 
+[tool.uv.build-backend]
+module-name = {{ module_name | tojson }}
+
 [tool.ruff]
 target-version = "py{{ python_min.replace('.', '') }}"
 line-length = 88

@@ -4,4 +4,58 @@ Use uv 0.12.21 (compatible policy: >=0.12.21,<0.13), Git, and Python 3.14.8.
 uv downloads the development interpreter when necessary. The package supports
 Python {{ python_min }} through 3.14; source syntax and typing target its minimum.
 
-Full setup and verification commands are documented as the template is implemented.
+## Setup
+
+```bash
+git init --initial-branch=main  # only for a newly generated project
+uv run --no-project --python 3.14 scripts/bootstrap.py
+git add .
+git commit -m "Initialize project"
+```
+
+Bootstrap installs the contributor environment, generates `uv.lock`, and installs
+prek hooks. It never creates commits or remotes. Commit the lockfile for reproducible
+development. A fresh clone uses `uv sync --locked --all-groups` followed by
+`uv run --locked prek install`. If uv reports an incompatible version, install
+the version in `.uv-version` before continuing.
+
+## Checks
+
+```bash
+uv run --locked python scripts/check.py
+uv run --locked ruff check --fix .
+uv run --locked ruff format .
+uv run --locked pytest
+```
+
+The check command verifies the lockfile, formatting, lint, strict types, and tests.
+Commit hooks run only quick Ruff and merge-conflict checks. Select `.venv` as your
+editor interpreter and use Ruff and basedpyright extensions with the same installed
+versions. Keep source and tests typed; explain any narrow diagnostic suppression.
+
+## Dependencies
+
+Use `uv add` for runtime requirements, `uv add --dev` for contributor tools, and
+`uv add --optional FEATURE` for optional features installed by users. Update pins
+deliberately, regenerate `uv.lock`, and review the changes. Build-backend changes
+must update both `[build-system]` and the build constraints/group.
+
+For a library with runtime dependencies, also test its declared minimum versions
+in a separate environment. From a clean, disposable clone, run:
+
+```bash
+uv sync --python {{ python_min }} --resolution lowest-direct
+uv run --no-sync pytest
+```
+
+This intentionally changes the disposable clone's lockfile. It must not change
+your main checkout's contributor lockfile. A passing locked development environment
+does not establish that older dependency versions work.
+
+## Template updates
+
+Commit your work before an update, then run `uvx copier update` from the checkout.
+Review every diff and resolve conflicts before committing. The template preserves
+the first-created README; other files participate in Copier's update merge.
+Change template answers with `copier update --data`, not by editing
+`.copier-answers.yml`. Run bootstrap/checks after accepting an update.
