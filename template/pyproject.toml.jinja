@@ -1,7 +1,7 @@
 [project]
 name = {{ distribution_name | to_json(ensure_ascii=False) }}
 version = "0.1.0"
-description = {{ description | to_json(ensure_ascii=False) }}
+description = {{ description.split() | join(' ') | to_json(ensure_ascii=False) }}
 readme = "README.md"
 requires-python = ">={{ python_min }}"
 {% if author_name or author_email %}

@@ -2,7 +2,7 @@
 
 Observed locally on macOS arm64 on 2026-10-01.
 
-- 30 maintainer tests passed, including real library/CLI rendering, bootstrap in a
+- 31 maintainer tests passed, including real library/CLI rendering, bootstrap in a
   path containing spaces, stale-lock/lint/type failures, isolated installed-wheel
   tests, missing `py.typed`, audit failure propagation, tag validation, and updates.
 - Generated CLI projects passed their full checks, including installed-wheel tests,
@@ -49,3 +49,12 @@ implementation. Configuration follows [uv](https://docs.astral.sh/uv/),
 [Copier](https://copier.readthedocs.io/),
 [pytest](https://docs.pytest.org/en/stable/reference/customize.html), and
 [GitHub Dependabot](https://docs.github.com/en/code-security/dependabot/).
+
+## Final review
+
+A fresh reviewer checked the whole template. Two corrections were reproduced with
+failing tests and repaired: accepted multiline summaries now build as a single
+metadata line while the raw Copier answer is preserved; BSD notices use the supplied
+author. No additional runtime support code was introduced. Legal suitability of
+license choices and actual hosted publishing were outside that code review.
+A fresh local clone also passed bootstrap and the complete library check command.

@@ -1,3 +1,4 @@
+import subprocess
 import tomllib
 
 import pytest
@@ -21,8 +22,10 @@ def test_default_is_typed_private_library(render):
 def test_metadata_round_trips_without_executing_text(render):
     description = 'Quoted "hello"\nUnicode café 🐍 and $(touch INJECTED) `whoami`'
     project = render({"distribution_name": "useful-tool", "description": description})
+    build = subprocess.run(["uv", "build"], cwd=project, capture_output=True, text=True)
+    assert build.returncode == 0, build.stderr
     metadata = tomllib.loads((project / "pyproject.toml").read_text())
-    assert metadata["project"]["description"] == description
+    assert metadata["project"]["description"] == " ".join(description.split())
     assert (project / "src/useful_tool/__init__.py").is_file()
     assert not (project / "INJECTED").exists()
     answers = yaml.safe_load((project / ".copier-answers.yml").read_text())
@@ -79,3 +82,10 @@ def test_public_cli_has_entrypoint_and_release(render):
 def test_invalid_answers_are_rejected(render, answers):
     with pytest.raises(ValueError):
         render(answers)
+
+
+def test_bsd_notice_uses_selected_author(render):
+    project = render({"license": "BSD-3-Clause", "author_name": "Test Author"})
+    notice = (project / "LICENSE").read_text()
+    assert "Copyright (c) 2026 Test Author" in notice
+    assert "<owner>" not in notice
