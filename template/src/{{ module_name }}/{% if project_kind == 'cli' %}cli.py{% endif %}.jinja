@@ -1,0 +1,15 @@
+"""Command-line entry point."""
+
+import argparse
+from collections.abc import Sequence
+
+from {{ module_name }} import normalize_name
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Normalize a name.")
+    _ = parser.add_argument("name")
+    args = parser.parse_args(argv)
+    name: str = args.name
+    print(normalize_name(name))
+    return 0

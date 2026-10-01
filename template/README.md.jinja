@@ -1,0 +1,11 @@
+# {{ distribution_name }}
+
+Replace this introduction with the purpose and usage of your package.
+
+```bash
+git init --initial-branch=main
+uv run --no-project --python 3.14 scripts/bootstrap.py
+uv run --locked python scripts/check.py --audit
+```
+
+Commit `uv.lock` after bootstrap. See CONTRIBUTING.md for development and releases.

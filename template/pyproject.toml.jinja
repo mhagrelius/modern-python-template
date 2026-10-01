@@ -1,0 +1,74 @@
+[project]
+name = {{ distribution_name | tojson }}
+version = "0.1.0"
+description = {{ description | tojson }}
+readme = "README.md"
+requires-python = ">={{ python_min }}"
+{% if author_name or author_email %}
+authors = [{ {% if author_name %}name = {{ author_name | tojson }}{% endif %}{% if author_name and author_email %}, {% endif %}{% if author_email %}email = {{ author_email | tojson }}{% endif %} }]
+{% endif %}
+{% if license != 'none' %}
+license = {{ license | tojson }}
+license-files = ["LICENSE"]
+{% endif %}
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+{% for minor in range(python_min.split('.')[1] | int, 15) %}
+    "Programming Language :: Python :: 3.{{ minor }}",
+{% endfor %}
+    "Typing :: Typed",
+{% if not publish_to_pypi %}
+    "Private :: Do Not Upload",
+{% endif %}
+]
+{% if github_owner %}
+[project.urls]
+Repository = "https://github.com/{{ github_owner }}/{{ github_repository }}"
+{% endif %}
+{% if project_kind == 'cli' %}
+[project.scripts]
+{{ distribution_name | tojson }} = "{{ module_name }}.cli:main"
+{% endif %}
+
+[build-system]
+requires = ["uv_build==0.12.21"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ruff==0.16.10", "basedpyright==1.40.1", "pytest==9.1.1",
+    "pytest-cov==7.1.0", "prek==0.5.4", "pip-audit==2.10.1",
+]
+build = ["uv_build==0.12.21"]
+
+[tool.uv]
+required-version = ">=0.12.21,<0.13"
+default-groups = ["dev", "build"]
+build-constraint-dependencies = ["uv_build==0.12.21"]
+
+[tool.ruff]
+target-version = "py{{ python_min.replace('.', '') }}"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.basedpyright]
+include = ["src", "tests"]
+pythonVersion = {{ python_min | tojson }}
+typeCheckingMode = "strict"
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+strict = true
+addopts = ["-ra", "--import-mode=importlib"]
+
+[tool.coverage.run]
+branch = true
+source = [{{ module_name | tojson }}]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

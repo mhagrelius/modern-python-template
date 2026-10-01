@@ -1,5 +1,4 @@
 import tomllib
-from pathlib import Path
 
 import pytest
 import yaml
@@ -30,7 +29,9 @@ def test_metadata_round_trips_without_executing_text(render):
     assert answers["description"] == description
 
 
-@pytest.mark.parametrize("module_name", ["class", "../bad", "bad-name", "1bad", "os", "sys"])
+@pytest.mark.parametrize(
+    "module_name", ["class", "../bad", "bad-name", "1bad", "os", "sys"]
+)
 def test_invalid_or_shadowing_module_names_are_rejected(render, module_name):
     with pytest.raises(ValueError):
         render({"module_name": module_name})
@@ -50,16 +51,31 @@ def test_public_cli_requires_license_and_repository(render):
 
 
 def test_public_cli_has_entrypoint_and_release(render):
-    project = render({"project_kind": "cli", "publish_to_pypi": True, "license": "MIT",
-                      "github_owner": "example", "github_repository": "example-package"})
+    project = render(
+        {
+            "project_kind": "cli",
+            "publish_to_pypi": True,
+            "license": "MIT",
+            "github_owner": "example",
+            "github_repository": "example-package",
+        }
+    )
     metadata = tomllib.loads((project / "pyproject.toml").read_text())
-    assert metadata["project"]["scripts"]["example-package"] == "example_package.cli:main"
+    assert (
+        metadata["project"]["scripts"]["example-package"] == "example_package.cli:main"
+    )
     assert (project / "LICENSE").is_file()
     assert (project / ".github/workflows/release.yml").is_file()
 
 
-@pytest.mark.parametrize("answers", [{"python_min": "3.10"}, {"github_owner": "bad/name"},
-                                     {"distribution_name": "../bad"}])
+@pytest.mark.parametrize(
+    "answers",
+    [
+        {"python_min": "3.10"},
+        {"github_owner": "bad/name"},
+        {"distribution_name": "../bad"},
+    ],
+)
 def test_invalid_answers_are_rejected(render, answers):
     with pytest.raises(ValueError):
         render(answers)

@@ -1,0 +1,14 @@
+import pytest
+
+from {{ module_name }}.cli import main
+
+
+def test_cli_normalizes_name(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["  Ada   Lovelace  "]) == 0
+    assert capsys.readouterr().out == "Ada Lovelace\n"
+
+
+def test_cli_requires_a_name() -> None:
+    with pytest.raises(SystemExit) as error:
+        _ = main([])
+    assert error.value.code == 2

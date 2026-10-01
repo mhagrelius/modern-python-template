@@ -1,0 +1,9 @@
+from {{ module_name }} import normalize_name
+
+
+def test_normalizes_whitespace() -> None:
+    assert normalize_name("  Ada\t Lovelace \n") == "Ada Lovelace"
+
+
+def test_empty_name() -> None:
+    assert normalize_name(" \t\n") == ""

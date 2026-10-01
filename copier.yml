@@ -1,0 +1,94 @@
+_min_copier_version: "9.18.2"
+_subdirectory: template
+_skip_if_exists:
+  - README.md
+_message_after_copy: |
+  Project created. Next:
+    cd {{ _copier_conf.dst_path }}
+    git init --initial-branch=main
+    uv run --no-project --python 3.14 scripts/bootstrap.py
+    git add .
+    git commit -m "Initialize project"
+  Commit the generated uv.lock. See CONTRIBUTING.md for checks and updates.
+
+distribution_name:
+  type: str
+  default: example-package
+  help: Distribution name (the name used by pip and PyPI).
+  validator: >-
+    {% if not distribution_name or not distribution_name.isascii() or
+    not distribution_name[0].isalnum() or not distribution_name[-1].isalnum() or
+    not distribution_name.replace('-', '').replace('_', '').replace('.', '').isalnum() %}
+    Use an ASCII package name starting and ending with a letter or digit.
+    {% endif %}
+module_name:
+  type: str
+  default: "{{ distribution_name.lower().replace('-', '_').replace('.', '_') }}"
+  help: Import module name (lowercase Python identifier).
+  validator: >-
+    {% set reserved = ['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await',
+    'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally',
+    'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not',
+    'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield', 'os', 'sys',
+    'typing', 'json', 'pathlib', 'subprocess', 'collections', 'argparse', 'logging',
+    'tempfile', 'shutil', 'tomllib', 'pytest', 'scripts', 'email', 'http', 'urllib',
+    'socket', 'asyncio', 'unittest', 'inspect', 'importlib', 'copy', 're', 'string'] %}
+    {% if not module_name.isidentifier() or not module_name.isascii() or
+    module_name != module_name.lower() or module_name in reserved %}
+    Use a lowercase ASCII Python identifier that does not shadow a reserved module or keyword.
+    {% endif %}
+description:
+  type: str
+  default: A typed Python package.
+  help: Short package description.
+author_name:
+  type: str
+  default: ""
+  help: Author name (optional).
+author_email:
+  type: str
+  default: ""
+  help: Author email (optional).
+project_kind:
+  type: str
+  default: library
+  choices: [library, cli]
+  validator: "{% if project_kind not in ['library', 'cli'] %}Choose library or cli.{% endif %}"
+python_min:
+  type: str
+  default: "3.14"
+  choices: ["3.12", "3.13", "3.14"]
+  validator: "{% if python_min not in ['3.12', '3.13', '3.14'] %}Choose Python 3.12, 3.13, or 3.14.{% endif %}"
+license:
+  type: str
+  default: none
+  choices: [none, MIT, Apache-2.0, BSD-3-Clause]
+  validator: "{% if license not in ['none', 'MIT', 'Apache-2.0', 'BSD-3-Clause'] %}Choose a listed license.{% endif %}"
+github_owner:
+  type: str
+  default: ""
+  help: GitHub owner or organization (optional for private local projects).
+  validator: >-
+    {% if github_owner and (not github_owner.isascii() or not github_owner[0].isalnum()
+    or not github_owner[-1].isalnum() or not github_owner.replace('-', '').isalnum()
+    or '--' in github_owner or github_owner|length > 39) %}
+    Use a valid GitHub owner name without slashes.
+    {% endif %}
+github_repository:
+  type: str
+  default: "{{ distribution_name }}"
+  help: GitHub repository name.
+  validator: >-
+    {% if not github_repository or not github_repository.isascii() or
+    github_repository in ['.', '..'] or github_repository|length > 100 or
+    not github_repository.replace('-', '').replace('_', '').replace('.', '').isalnum() %}
+    Use a repository name containing ASCII letters, digits, periods, underscores, or hyphens.
+    {% endif %}
+publish_to_pypi:
+  type: bool
+  default: false
+  help: Include the PyPI release workflow?
+  validator: >-
+    {% if publish_to_pypi and (not github_owner or license == 'none') %}
+    Publishing requires a GitHub owner/repository and a selected license.
+    {% endif %}

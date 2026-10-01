@@ -1,0 +1,10 @@
+name: Release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Release validation configuration is completed by the template build."
