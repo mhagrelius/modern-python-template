@@ -9,7 +9,10 @@ from _common import entrypoint, project_root, run
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    _ = parser.parse_args(argv)
+    _ = parser.add_argument(
+        "--audit", action="store_true", help="Audit locked dependencies."
+    )
+    args = parser.parse_args(argv)
     run(["uv", "sync", "--locked", "--all-groups"])
     run(["uv", "run", "--locked", "--no-sync", "ruff", "check", "."])
     run(["uv", "run", "--locked", "--no-sync", "ruff", "format", "--check", "."])
@@ -27,6 +30,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         ]
     )
     run([sys.executable, str(project_root() / "scripts/test_wheel.py")])
+    if args.audit:
+        run(
+            [
+                "uv",
+                "run",
+                "--locked",
+                "--no-sync",
+                "pip-audit",
+                "--local",
+                "--skip-editable",
+                "--cache-dir",
+                str(project_root() / ".venv/pip-audit-cache"),
+            ]
+        )
     return 0
 
 

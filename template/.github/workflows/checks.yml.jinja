@@ -1,0 +1,46 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: {% raw %}checks-${{ github.workflow }}-${{ github.ref }}{% endraw %}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: {% raw %}${{ matrix.os }}{% endraw %}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+{% for minor in range(python_min.split('.')[1] | int, 15) %}
+          - os: ubuntu-latest
+            python: '3.{{ minor }}'
+{% endfor %}
+          - os: macos-latest
+            python: '3.14'
+          - os: windows-latest
+            python: '3.14'
+    env:
+      UV_PYTHON: {% raw %}${{ matrix.python }}{% endraw %}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: '0.12.21'
+          enable-cache: true
+      - name: Check source, installed wheel, and dependencies
+        run: uv run --locked python scripts/check.py --audit
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: {% raw %}coverage-${{ matrix.os }}-${{ matrix.python }}{% endraw %}
+          path: coverage.xml
+          if-no-files-found: error

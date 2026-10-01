@@ -19,7 +19,7 @@ def test_default_is_typed_private_library(render):
 
 
 def test_metadata_round_trips_without_executing_text(render):
-    description = 'Quoted "hello"\nUnicode café and $(touch INJECTED) `whoami`'
+    description = 'Quoted "hello"\nUnicode café 🐍 and $(touch INJECTED) `whoami`'
     project = render({"distribution_name": "useful-tool", "description": description})
     metadata = tomllib.loads((project / "pyproject.toml").read_text())
     assert metadata["project"]["description"] == description

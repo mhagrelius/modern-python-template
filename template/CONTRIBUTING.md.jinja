@@ -23,6 +23,7 @@ the version in `.uv-version` before continuing.
 
 ```bash
 uv run --locked python scripts/check.py
+uv run --locked python scripts/check.py --audit
 uv run --locked ruff check --fix .
 uv run --locked ruff format .
 uv run --locked pytest
@@ -32,6 +33,15 @@ The check command verifies the lockfile, formatting, lint, strict types, and tes
 Commit hooks run only quick Ruff and merge-conflict checks. Select `.venv` as your
 editor interpreter and use Ruff and basedpyright extensions with the same installed
 versions. Keep source and tests typed; explain any narrow diagnostic suppression.
+
+The full check also builds an sdist and wheel, then runs tests against the installed
+wheel outside the checkout. No release is uploaded by these checks.
+
+`--audit` runs pip-audit against the freshly synchronized locked environment,
+including contributor tools and excluding the editable project. It needs network
+access to advisory services; vulnerabilities and service failures return a failure.
+It checks known advisories for the current platform, rather than proving code safe.
+For an audit alone after syncing, use `uv run --locked pip-audit --local --skip-editable`.
 
 ## Dependencies
 
@@ -59,3 +69,29 @@ Review every diff and resolve conflicts before committing. The template preserve
 the first-created README; other files participate in Copier's update merge.
 Change template answers with `copier update --data`, not by editing
 `.copier-answers.yml`. Run bootstrap/checks after accepting an update.
+
+## CI and releases
+
+GitHub Actions runs the full check on Linux for Python {{ python_min }}–3.14 and
+on macOS/Windows for 3.14. `UV_PYTHON` selects the matrix interpreter over the local
+`.python-version` pin. Coverage XML is saved as a workflow artifact. Dependabot
+opens weekly updates for uv dependencies and pinned action commits; review these
+and keep `.uv-version`, workflow versions, and uv constraints consistent.
+{% if publish_to_pypi %}
+
+Create a GitHub environment named `pypi`, with approval rules if desired. Register
+this repository, `release.yml`, and environment `pypi` as a PyPI Trusted Publisher.
+Ensure the PyPI distribution name is available. No API token is needed.
+
+Use `uv version` to update the static version and lockfile, commit the change, and
+push a matching `v<version>` tag. Release checks require that exact tag, audit the
+locked environment, build from the sdist, and test the installed wheel. The publish
+job downloads those artifacts and uploads them with OIDC; it does not rebuild.
+The workflow runs on version tags only. Test on TestPyPI by registering a separate
+publisher and changing the environment URL and uv publish endpoint in that workflow.
+{% else %}
+
+PyPI publication is disabled. To enable it, update the Copier answers to select a
+license, repository owner, and `publish_to_pypi=true`, then review the generated
+release workflow and its Trusted Publisher setup instructions.
+{% endif %}
